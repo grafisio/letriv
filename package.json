@@ -1,0 +1,43 @@
+{
+  "name": "letriv-v2",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "predev": "bash scripts/ensure-db.sh",
+    "dev": "pnpm --filter @letriv/shared-types build && pnpm --filter @letriv/web dev",
+    "dev:clean": "rm -rf apps/web/.next && pnpm dev",
+    "dev:nlp": "cd apps/nlp-service && set -a && [ -f .env ] && . ./.env; set +a && .venv/bin/uvicorn app.main:app --reload --reload-dir app --port 8000",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @letriv/shared-types test && pnpm --filter @letriv/arabic-utils test && pnpm --filter @letriv/taxonomy test",
+    "test:nlp": "cd apps/nlp-service && .venv/bin/python -m pytest tests -q",
+    "eval:gold": "cd apps/nlp-service && .venv/bin/python scripts/eval_against_gold.py",
+    "eval:gold:open": "cd apps/nlp-service && .venv/bin/python scripts/eval_against_gold.py --manifest ../../data/gold-corpus/open/manifest.json",
+    "eval:gold:all": "pnpm eval:gold && pnpm eval:gold:open",
+    "eval:gold:field": "cd apps/nlp-service && .venv/bin/python scripts/eval_against_gold.py --manifest ../../data/gold-corpus/field/manifest.staging.json --tag field-staging",
+    "test:db": "sh -c 'export DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock 2>/dev/null; psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f scripts/test-db-gates.sql'",
+    "test:e2e": "pnpm --filter @letriv/web test:e2e",
+    "smoke": "bash scripts/smoke-check.sh",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css}\"",
+    "db:start": "sh -c 'export DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock 2>/dev/null; supabase start --exclude vector'",
+    "db:stop": "supabase stop",
+    "db:reset": "sh -c 'export DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock 2>/dev/null; supabase db reset'",
+    "db:types": "supabase gen types typescript --local > packages/shared-types/src/database.generated.ts",
+    "db:seed:field": "sh -c 'export DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock 2>/dev/null; docker exec -i supabase_db_letriv-v2 psql -U postgres < scripts/seed-field-batch.sql'",
+    "pack:cpanel": "bash scripts/pack-cpanel.sh",
+    "import:field-transcripts": "python3 scripts/import-field-transcripts.py",
+    "import:field-transcripts:force": "python3 scripts/import-field-transcripts.py --force"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
